@@ -80,7 +80,7 @@ REPL: `(judge-thredd.core/-main example-chat-2015-08-07.txt)`
 
 `judge-thredd.chat-logs` contains some utility logic to parse an IRC
 logfile into a simple data structure useful as input to a solution
-under development. It should be possible to tread this namespace as a
+under development. It should be possible to treat this namespace as a
 blackbox.
 
 `judge-thredd.-main` takes a filename and uses that utility logic as a
