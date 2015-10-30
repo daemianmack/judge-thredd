@@ -73,7 +73,7 @@ There are likely other heuristics we can fall back on to increase accuracy!
 
 CLI: `lein run example-chat-2015-08-07.txt`
 
-REPL: `(-main example-chat-2015-08-07.txt)`
+REPL: `(judge-thredd.core/-main example-chat-2015-08-07.txt)`
 
 
 ## Logfile parsing
