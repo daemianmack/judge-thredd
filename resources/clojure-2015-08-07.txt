@@ -1,0 +1,394 @@
+[00:56:20] hejki: ohai, how do I use literal '?' with jdbc queries? escaping does not seem to work, neither does using double ?.
+[01:05:09] ddellacosta: hejki: what are you using to connect to the DB? clojure.java.jdbc ?
+[01:05:20] hejki: clojure.java.jdbc yes
+[01:05:42] hejki: I am using PostgreSQL with jsonb-fields, and the syntax for checking json object key existence is: json_field_name ? 'keyname'
+[01:05:58] hejki: so I kinda need to pass the ? without appending any parameter values into it :P
+[01:06:32] hejki: with a quick glance the lib seems to have no support for "unprepared" statements and/or skipping parameter binding
+[01:08:00] ddellacosta: hejki: you should be able to do something like ["INSERT INTO foo (a, b) VALUES (?, ?)" "this" "that"] I believe
+[01:08:21] ddellacosta: passing that into execute
+[01:08:37] hejki: ddellacosta: yes, that works fine, what I cannot do is: ["SELECT COUNT(json_field ? 'somekey') FROM table"]
+[01:09:11] ddellacosta: oh sorry, I misunderstood--you want to pass the value '?' in?
+[01:09:17] hejki: ddellacosta: so what I want is to tell java.jdbc that the ? in the statement is literal ?, not placeholder for parameter
+[01:09:20] hejki: yes
+[01:09:23] ddellacosta: gotcha
+[01:09:47] hejki: maybe ["SELECT COUNT(json_field ? 'somekey') FROM table" "?"] works :D
+[01:10:14] hejki: ... it does not :<
+[01:10:17] ddellacosta: huh, maybe!  Dunno if prepared statements make sense with a select, but...
+[01:10:17] ddellacosta: ah
+[01:10:20] ddellacosta: one sec
+[01:12:16] ddellacosta: hejki: so, I just tried (j/query fdb ["SELECT E'?' as foo"]), and that worked
+[01:12:23] ddellacosta: gave me ({:foo "?"})
+[01:12:46] hejki: ahh! :)
+[01:12:50] ddellacosta: maybe that'll work for you, like COUNT(json_field E'?' 'somekey') ?
+[01:13:07] hejki: y, I am currently testing
+[01:13:15] hejki: nah... PSQLException ERROR: syntax error at or near "'exception'"
+[01:13:37] ddellacosta: hmm, one sec
+[01:13:53] ddellacosta: I think I have to be trying this on some json data to give you a useful answer
+[01:17:08] ddellacosta: damn, I need 9.4 for this don't I
+[01:17:42] hejki: y
+[01:17:44] hejki: :P
+[01:18:31] ddellacosta: alright, well, I don't care about that actually, if I get the same psql error w/c.j.j then it should work for you
+[01:20:32] ddellacosta: hmm, this appears to be a java issue actually
+[01:20:42] ddellacosta: specifically org.postgresql.core.v3.SimpleParameterList.checkAllParametersSet
+[01:20:53] ddellacosta: not that that helps you. :-p
+[01:20:56] hejki: hehe :P
+[01:21:07] hejki: I kinda guessed it is java issue :P
+[01:24:45] ddellacosta: testing out a more recent postgres jar
+[01:25:00] ddellacosta: this suggests it may be fixed already: http://postgresql.nabble.com/problem-with-pgjdbc-prepared-statements-and-new-jsonb-exists-operator-td5834634.html
+[01:27:14] hejki: hmm.. the mentioned version of postgresql lib is not available from clojars
+[01:28:12] ddellacosta: you can get it from maven
+[01:28:41] ddellacosta: w00t, that did it for me
+[01:28:57] hejki: 1102 is available from clojars, that should be even newer, testing that no
+[01:28:59] hejki: now*
+[01:29:08] ddellacosta: (j/query fdb ["SELECT '[\"foo\", \"bar\", \"baz\"]'::jsonb ?? 'bar'"])
+[01:29:08] ddellacosta:  PSQLException ERROR: type "jsonb" does not exist
+[01:29:46] ddellacosta: this is what I have in my project.clj for postgres: [org.postgresql/postgresql "9.4-1201-jdbc41"]
+[01:29:47] ddellacosta: that works
+[01:30:19] ddellacosta: anyways, hopefully that does what you need--good luck!
+[01:30:24] hejki: same version, still getting PSQLException No value specified for parameter 1.
+[01:30:52] ddellacosta: that's the same exception you were getting before?
+[01:31:08] hejki: yes, nvm my version was 1102 :P
+[01:31:10] hejki: testing the 1201
+[01:31:14] hejki: ahh
+[01:31:14] hejki: yes
+[01:31:15] hejki: !
+[01:31:15] hejki: \o/
+[01:31:18] hejki: it works
+[01:31:20] hejki: ty alot
+[01:31:22] ddellacosta: sweet!
+[01:31:26] ddellacosta: glad you got it working
+[01:31:41] hejki: yup, have to use double ? though
+[01:31:54] ddellacosta: yeah, may be stuck with that for now
+[01:32:13] hejki:  that is actually tolerable imo
+[01:32:18] hejki: since it is quite special case
+[02:11:13] supersym: Is there a way (like in F#) that I can choose what data from a defrecord to output when printing? I am using one as a storage for blobs of text but it clutters my entire screen making it harden to sift through data
+[02:11:40] supersym: (just need to keep it to inspect the original texts when something goes wrong)
+[02:15:48] Kneiva: supersym: Like this? http://stackoverflow.com/a/3689364/1790621
+[02:17:50] supersym: Kneiva: exactly! Thanks for the reference
+[02:23:11] Kneiva: np
+[02:26:31] slhsen: Hey, anyone used https://github.com/hugoduncan/clj-ssh before? I got a question about it.
+[03:15:41] cmarques: Hi, I'm reading through https://github.com/technomancy/leiningen/wiki/Faster, which lists different ways of making leiningen boot faster. However, it's hard to know pros and cons of each strategy. What would be a good general strategy for faster boot time when using leiningen? Thanks!
+[03:30:06] kwladyka: i found interesting article about performance in Clojure, just sharing with you http://www.learningclojure.com/2013/02/clojure-is-fast-is-clojure-still-fast.html :)
+[03:40:49] jkogut_gs: kwladyka, eeee "Sorry, the page you were looking for in this blog does not exist. "
+[03:41:33] oddcully: not true
+[03:41:50] oddcully: loads for me at least
+[03:42:21] jkogut_gs: hmmm
+[03:43:20] kwladyka: it works for mee
+[03:43:22] kwladyka: :)
+[03:45:15] jkogut_gs: ok, few times refresh and works
+[04:24:16] kwladyka: haha i solved it!!! so many days of work and solve it! So happy, i am going rest :)
+[04:25:07] eaz4Ohfi: kwladyka: I have no idea what are you talking about, but congrats anyway :)
+[05:45:19] namra: ah strange things :/
+[05:46:08] namra: tests run fine, and manual http request via curl throws a cryptic exception :/
+[06:05:00] kungi: namra: cryptic?
+[08:30:21] hefesto: Good morning :)                  When I try to use the CIDER repl I get an  "java.io.FileNotFoundException: Could not locate clj_antlr/core__init.class or clj_antlr/core.clj ..." error, but using the lein repl works fine. Does anyone know why?
+[08:40:23] chouser: hefesto: can you (require 'clj-antlr.core) in the lein repl?
+[08:41:01] hefesto: yes
+[08:42:01] hefesto: i even use a function from clj-antlr and it returns the expected
+[08:42:34] hefesto: chouser: and thank you for responding :)
+[08:45:28] chouser: hm, maybe paste your project.clj in a gist or something? Anything weird in your .lein/profiles.clj?
+[08:50:43] akabander: ?
+[08:50:59] hefesto: chouser: I've never used gist. I hope i did it right: https://gist.github.com/hhefesto/0aa1a57bb6120b03ff16
+[08:51:01] expez: Has anyone written a lein plugin yet which converts a cljc based lib to an artifact containing only clj and cljs files?  I'd like to use cljc, but I don't want to force consumers to use 1.7...
+[08:56:41] puredanger: that is effectively what cljx does
+[08:58:14] puredanger: or rather that takes a source template and spits out new source files. doesn't exactly solve this problem, just mean it has the right shape.
+[09:12:15] chouser: hefesto: Hm, looks pretty vanilla. I don't really have any explanation. Are there any other errors during cider-jack-in, prior to the FileNotFound?
+[09:15:07] hefesto: chouser: It magically got resolved. I'm sorry. I have no idea how. I just called cider-jack-in from project.clj rather than from my src file and it now works.
+[09:15:40] chouser: I think if someone needs to apologize, it's not you. :-) Glad it's working for you now.
+[09:16:47] hefesto: thank you so much anyway :)
+[09:17:25] chouser: np
+[10:12:27] {blake}: Is it fair to say "cons always returns a list"? I know there are different classes that might be returned, but they're all broadly "lists" (versus, say, vectors).
+[10:12:56] justin_smith: ,(list? (cons :a nil))
+[10:13:00] clojurebot: true
+[10:13:20] justin_smith: ,(list? (cons :a []))
+[10:13:21] clojurebot: false
+[10:13:38] justin_smith: ,(type (cons :a []))
+[10:13:38] gfredericks: {blake}: if you relax "list" to "seq" then yes
+[10:13:39] clojurebot: clojure.lang.Cons
+[10:13:58] justin_smith: ,(seq? (cons :a []))
+[10:13:58] clojurebot: true
+[10:14:26] justin_smith: it's casual friday for lists, they can relax today
+[10:14:54] {blake}: gfredericks: So, I guess the question is, is it wrong to do so? Even though it's pretty common to be casual about the word, it could trip you up.
+[10:15:17] {blake}: My "lists" are all in hawaiian shirts and shorts today.
+[10:18:30] gfredericks: {blake}: depends on the linguistic context
+[10:19:22] Ch3ck_: I'm kinda confused between learning Erlang and Clojure, can anyone just give me some opinions on why I clojure might be the future?
+[10:19:59] {blake}: gfredericks: Yeah. There's the other, sorta M. Night Shyamalan side of this: A ha! You never noticed that when I said "list" I meant actual lists, not sequences! That's not great eitehr.
+[10:21:45] justin_smith: Ch3ck_: if you want ultimate stability and rolling updates and highest possible availability, I'd go with erlang. If you want a modern language and number crunching speed while being good at concurrency, that would point to Clojure.
+[10:22:04] justin_smith: Ch3ck_: then of course there is syntax, ecosystem of libraries, etc. to consider
+[10:22:37] Ch3ck_: justin_smith, I like clojure because of it's intersection with Java and the JVM
+[10:22:58] justin_smith: yeah, that is a bonus - it's the real reason I can use Clojure at work
+[10:23:03] Ch3ck_: so was thinking it will help me some time in the future cover for Java's mistakes with JP
+[10:23:16] justin_smith: JP?
+[10:23:23] Ch3ck_: justin_smith, sorry FP
+[10:23:32] justin_smith: yeah, Clojure is good for that
+[10:23:43] Ch3ck_: justin_smith, any recommended books?
+[10:23:56] Ch3ck_: It's confusing looking at the list on stackoverflow ;)
+[10:24:06] Ch3ck_: A newbie might not know which one to choose
+[10:24:11] {blake}: Ch3ck_, justin_smith: Yeah, me, too. POI FTW!
+[10:24:17] justin_smith: the O'Reilly clojure book is good. Clojure From the Ground Up and Clojure For the Brave and True are free online
+[10:25:05] Ch3ck_: thanks justin_smith. {blake} any suggestions too?
+[10:25:12] justin_smith: Ch3ck_: if you already have a lispy background (eg. common lisp or scheme experience), Joy of Clojure is excellent
+[10:25:29] oddcully: clojure applied tackles real world problems.  might be missing in "old lists"
+[10:25:31] Ch3ck_: I have no experience with FP.
+[10:25:38] Ch3ck_: Clojure will be my first
+[10:25:42] {blake}: Ch3ck_: I don't like the books, although I'm going through Living Clojure right now and hoping it will be better.
+[10:26:11] Ch3ck_: Aight, will check justin_smith's recommendations
+[10:26:20] justin_smith: Ch3ck_: tbh I learned more about clojure by lurking here and following the conversation than anywhere else
+[10:26:27] {blake}: At least for me, I'd start reading one of these things, and there'd be 20 pages up front on Clojure's amazing destructuring capabilities, or some really deep abstraction stuff.
+[10:26:50] gfredericks: {blake}: I think technical contexts will always be that way; we don't have nearly enough words for our concepts so we overload them everywhere, and the only way to be sure you're communicating effectively is to clarify a bunch
+[10:27:01] {blake}: I managed by alternating between here, 4clojure, the books, and writing code.
+[10:27:47] {blake}: gfredericks: Yes, there's some of that. But each language has its own frailties as far as it goes. Like, for Ruby, it's this gungho "Learn 15 DSLs 'cause Ruby is so easy and it all looks like English!"
+[10:27:58] Ch3ck_: Alright, guess. I'll be lurking here more often justin_smith {blake}
+[10:28:24] Ch3ck_: I don't know any programmer who codes in Clojure in my Country
+[10:28:46] justin_smith: {blake}: that reminded me of a great thing I heard today "familiarity will increase, but complexity is forever"
+[10:28:59] {blake}: I think FP's--and especially Clojure--"weakness" is that it's demanding. Algol-type languages are easy.
+[10:29:31] {blake}: justin_smith: Yes! Just so.
+[10:29:36] justin_smith: Ch3ck_: haha, actually one bonus of Clojure is there is very little syntax, so it can take a bit more effort to really do things obscurely (though we know a few tricks)
+[10:29:51] {blake}: And I think the problem with clojure books is that it's hard to remember what it was like to NOT be familiar with things.
+[10:30:03] xemdetia: I think it is also important for clojure to at least know some rudimentary things about Java- going into clojure blind without any java background will be painful
+[10:30:12] {blake}: (Which is a problem with all tech books written by experts, but doubly so for Clojure.)
+[10:30:18] Ch3ck_: I code in Java xemdetia
+[10:30:23] justin_smith: {blake}: yeah, writing intro books is hard because memories of what was difficult as a beginner are very unreliable
+[10:30:27] Ch3ck_: my GSoC project is in java
+[10:30:30] xemdetia: well then at least you understand what the JVM has under the hood that you can call out to
+[10:30:36] akabander: Actually I'm using Clojure so I don't have to learn Java (syntax). I don't mind learning about the JVM.
+[10:30:47] {blake}: xemdetia: Might be. I think any OO experience is enough.
+[10:30:56] justin_smith: xemdetia: eh, it wasn't very painful for me (though I had used other OO languages)
+[10:31:22] justin_smith: xemdetia: I think enough java knowledge to be able to read a javadoc is sufficient
+[10:31:30] {blake}: justin_smith: Yep. I think I'm pretty good at it, if I say so myself. =P
+[10:31:33] Ch3ck_: justin_smith, Yeah
+[10:31:40] xemdetia: justin_smith, yeah that's all I was indicating
+[10:36:29] gfredericks: justin_smith: good quote
+[10:41:07] tmtwd: http://pastebin.com/1GRW3gwX can someone help we figure out how this reagent code is supposed to work?
+[10:41:11] tmtwd: *me
+[10:42:19] Ch3ck_: tmtwd, have your tried paste.kde.org? it's cleaner
+[10:43:02] tmtwd: https://paste.kde.org/p5kjvkgxa ok here you go
+[10:43:09] oddcully: tmtwd: onchange gets an event object
+[10:43:19] tmtwd: there was another pastebin alt that was awesome but I can't remember what its called
+[10:43:25] oddcully: then the code there basically in JS would look like: event.target.value
+[10:43:56] tmtwd: so how would I hardcode in a value so it always changes to that value?
+[10:44:15] oddcully: #(reset value "lerl")
+[10:45:00] tmtwd: oh I see
+[10:45:45] BinaryResult_: Hey everyone, we are hiring remote full-stack clojure developers, hope to hear from you!  http://discomelee.com/jobs/
+[10:45:45] tmtwd:  #(reset! value @value) so why can't I just do that?
+[10:47:38] oddcully: you can do that.  but thats a noop
+[10:47:47] gfredericks: mostly
+[10:47:55] gfredericks: there's a race condition there where it might undo something else
+[10:48:00] gfredericks: but otherwise it's a noop
+[10:49:10] oddcully: can it?  in javascript?
+[10:49:20] oddcully: race i mean
+[10:49:37] tmtwd: oh I think I get it :)
+[10:50:54] gfredericks: oddcully: probably not then
+[10:55:50] sdegutis: Hi what's Clojure's version of the Haskell thing where you can use (< x) as a function?
+[10:56:58] gfredericks: #(< % x)
+[10:59:47] justin_smith: gfredericks: I think the retry behavior of atoms ensures that #(reset! % @%) is always a noop
+[10:59:58] justin_smith: gfredericks: retries man, I tell ya hwat
+[11:01:01] chouser: I don't think that's right. *goes off to test*
+[11:01:03] amalloy: justin_smith: no, it can undo something, like gfredericks says
+[11:01:04] gfredericks: justin_smith: no way man
+[11:01:30] gfredericks: justin_smith: it's (swap! a identity) that's always a noop
+[11:01:46] amalloy: if you time things wrong, then running (swap! a inc) and (reset! a @a) at the same time will result in a returning to its old value
+[11:01:48] justin_smith: oh, wait - does reset! do retries at all?
+[11:01:51] amalloy: no
+[11:01:58] justin_smith: aha, that was my mistake
+[11:02:03] amalloy: how could it? there's no computation to redo
+[11:02:14] justin_smith: d'oh, right
+[11:02:30] Bronsa: sdegutis: partial
+[11:04:25] sdegutis: Bronsa: partial can place unspecified arguments in arbitrary positions in a function call?
+[11:06:29] chouser: ,(let [a (atom 0), f (future (loop [] (reset! a @a)))] (dotimes [_ 1000] (swap! a inc)) (future-cancel f) @a)
+[11:06:34] clojurebot: #error {\n :cause "no threads please"\n :via\n [{:type java.lang.SecurityException\n   :message "no threads please"\n   :at [clojurebot.sandbox$enable_security_manager$fn__857 invoke "sandbox.clj" 94]}]\n :trace\n [[clojurebot.sandbox$enable_security_manager$fn__857 invoke "sandbox.clj" 94]\n  [clojurebot.sandbox.proxy$java.lang.SecurityManager$Door$f500ea40 checkAccess nil -1]\n  [java.lang.Threa...
+[11:06:40] chouser: aww
+[11:07:08] lazybot: java.lang.SecurityException: You tripped the alarm! future-call is bad!
+[11:07:08] chouser: &(let [a (atom 0), f (future (loop [] (reset! a @a)))] (dotimes [_ 1000] (swap! a inc)) (future-cancel f) @a)
+[11:07:29] justin_smith: chouser: thanks for the example
+[11:07:46] gfredericks: sdegutis: there's no precise syntactic analog; you can write functions/macros to do whatever you want, but nothing will be as succinct as #(...)
+[11:08:03] chouser: Oh well. Guess you have to run it yourself. Anyway, if (reset! a @a) were noop then that would always return 1000
+[11:08:13] justin_smith: right
+[11:08:26] chouser: For me, generally returns something between 850 and 900
+[11:08:28] justin_smith: I forgot that reset! never retries
+[11:08:39] justin_smith: returned 840 here
+[11:09:45] chouser: I actually thought reset did retry like (swap! a (constantly x)), but the (current) code says no: https://github.com/clojure/clojure/blob/1d5237f9d7db0bc5f6e929330108d016ac7bf76c/src/jvm/clojure/lang/Atom.java#L97
+[11:11:40] justin_smith: chouser: https://www.refheap.com/107873
+[11:11:55] justin_smith: I'm actually surprised at how many times it got the right answer, considering
+[11:12:37] chouser: nicely done
+[11:15:13] justin_smith: chouser: now I'm confused - that loop doesn't recur, so how does it reduce the total by that much...
+[11:15:45] justin_smith: also the version with a recur doesn't return because future-cancel can't cancel it because it doesn't hit a cancellable operation (needs a sleep I guess)
+[11:15:49] sdegutis: gfredericks: So #(...) is the transliteration of Haskell's sections?
+[11:17:31] justin_smith: if I throw in a (Thread/sleep 1) it behaves exactly like the one without a call to recur
+[11:19:11] gfredericks: sdegutis: #() is more general; haskell's syntax only works on binary operators I believe, which isn't a syntactic concept clojure even has
+[11:20:56] sdegutis: gfredericks: I didn't know Haskell has "binary operators". I thought they were just ordinary functions that have special permission to be called using infix notation.
+[11:21:14] chouser: justin_smith: ha, missed the loop! So the damage is caused entirely by a single reset!
+[11:21:28] gfredericks: sdegutis: that's what I meant, they're syntactically special
+[11:21:41] gfredericks: that's all I'm using "operator" to mean
+[11:21:44] chouser: which explains why sometimes it actually gets all 1000 -- when the reset! doesn't actually fire until after the dotimes is complete
+[11:21:44] sdegutis: gfredericks: Oh Nice Thanks.
+[11:21:48] justin_smith: chouser: paste updated with proof https://www.refheap.com/107873
+[11:25:20] amalloy: gfredericks: i mean you can partially apply either the first or second arg of any function in haskell by making it temporarily infix: filter ((0 ==) . (`mod` 5)) [1..20] == [5,10,15,20]
+[11:25:23] chouser: (let [a (atom 0), stop (atom false), f (future (loop [] (when-not @stop (reset! a @a) (recur))))] (dotimes [_ 5000] (swap! a inc)) (reset! stop true) (Thread/sleep 100) [f @a])
+[11:25:50] amalloy: so it does only work on infix functions, but those functions can have any number of args, and you can make anything inline if you want
+[11:26:24] justin_smith: chouser: the future-cancel works in your original if you add (Thread/sleep 1), that's enough to make the loop cancellable
+[11:26:34] chouser: ah, nice
+[11:26:48] amalloy: justin_smith: (Thread/yield)
+[11:26:55] justin_smith: amalloy: oh, sweet
+[11:26:58] lazybot: ⇒ 289
+[11:26:59] justin_smith: (inc amalloy)
+[11:27:24] amalloy: that's basically a (Thread/sleep 0) that doesn't waste time talking to the system clock or whatever
+[11:27:41] justin_smith: very cool
+[11:28:25] amalloy: this may be the first time in history anyone has called Thread/yield very cool
+[11:29:10] justin_smith: haha, I'm easily impressed
+[11:43:10] puredanger: (.join (Thread/currentThread))  ;; the sound of one thread deadlocking
+[11:53:54] chouser: heh
+[11:59:05] iamjarvo: so i am trying to get lein repl to use a newer version of nrepl right now it uses 0.2.6 from my understanding if i put [org.clojure/tools.nrepl "0.2.10"] in the dependencies in the project.clj it should use a newer version of nrepl but its not :(
+[12:02:57] justin_smith: iamjarvo: it's a magic thing where you need the plugin in profiles.clj iirc
+[12:03:01] justin_smith: not just the dep
+[12:03:16] justin_smith: the job of the plugin is to inject the dep
+[12:04:20] iamjarvo: justin_smith so i see this "Retrieving org/clojure/tools.nrepl/0.2.10/tools.nrepl-0.2.10.jar from central
+[12:04:20] iamjarvo: Retrieving org/clojure/clojure/1.2.0/clojure-1.2.0.jar from central" but then i see this when the repl starts "nREPL server started on port 55376 on host 127.0.0.1 - nrepl://127.0.0.1:55376
+[12:04:21] iamjarvo: REPL-y 0.3.5, nREPL 0.2.6"
+[12:04:50] justin_smith: iamjarvo: right, that's because it needs to do its thing as a plugin, it's conflicting with lein stuff
+[12:05:40] iamjarvo: justin_smith are you talking about the :plugins in project.clj?
+[12:05:56] justin_smith: iamjarvo: it has to be in profiles.clj, but yes, in plugins
+[12:06:04] justin_smith: profiles because that takes precedence
+[12:10:27] iamjarvo: justin_smith here is a pastie of my setup http://pastie.org/private/7zkcffxw4l8phzaaj9azw
+[12:10:59] justin_smith: iamjarvo: that's not a valid profiles.clj
+[12:11:23] iamjarvo: crap sorry i double pasted
+[12:11:29] justin_smith: haha, OK
+[12:12:17] iamjarvo: here is a fresh link http://pastie.org/private/942edrwxn1tb8sybor7v3a
+[12:13:13] kwladyka: justin_smith, i solved my problem! :)
+[12:13:13] justin_smith: iamjarvo: :plugins is being treated as a profile name
+[12:13:23] justin_smith: kwladyka: oh wow, what was the trick?
+[12:13:27] kwladyka: justin_smith, algorithm was slaw because of duck duck typing
+[12:13:38] kwladyka: justin_smith, i need to declare datatype
+[12:13:43] justin_smith: iamjarvo: the tools.nrepl plugin should go inside :user :plugins
+[12:13:47] iamjarvo: ahh because its in its own map
+[12:14:14] justin_smith: iamjarvo: right, also I don't think you meant to make a profile named :dependencies either :)
+[12:14:35] kwladyka: justin_smith, read this article, it is very interesting http://www.learningclojure.com/2013/02/clojure-is-fast-is-clojure-still-fast.html
+[12:15:45] justin_smith: kwladyka: someone should have mentioned turning on reflection warnings, I guess I'll remember that next time
+[12:15:48] kwladyka: justin_smith, all because of weak typing
+[12:16:41] kwladyka: justin_smith, turning on reflection warnings?
+[12:17:25] justin_smith: ,(defn foo [x] (.length x))
+[12:17:30] clojurebot: #'sandbox/foo
+[12:17:44] justin_smith: ,(set! *warn-on-reflection* true)
+[12:17:44] clojurebot: #error {\n :cause "Can't change/establish root binding of: *warn-on-reflection* with set"\n :via\n [{:type java.lang.IllegalStateException\n   :message "Can't change/establish root binding of: *warn-on-reflection* with set"\n   :at [clojure.lang.Var set "Var.java" 221]}]\n :trace\n [[clojure.lang.Var set "Var.java" 221]\n  [sandbox$eval48 invokeStatic "NO_SOURCE_FILE" -1]\n  [sandbox$eval48 invoke...
+[12:18:21] justin_smith: kwladyka: anyway, in a real repl you can use set! like above, and then if you run that defn it will tell you about the reflection
+[12:18:34] justin_smith: which is what makes the underspecified code so slow
+[12:19:10] justin_smith: kwladyka: so you can turn on *warn-on-reflection* at the top level of your project, and get warnings about the places where your code will be slow because the types are not known
+[12:19:39] iamjarvo: justin_smith in my endless changing and trying diff things created those maps. thanks for the second eyes
+[12:19:56] justin_smith: iamjarvo: np, hope that helps you solve the issue
+[12:21:03] kwladyka: justin_smith, so good to know
+[12:21:07] kwladyka: justin_smith, thx
+[12:21:36] kwladyka: i am so happy to found out why my algorithm is slow and i learnt a lot
+[12:22:05] kwladyka: i am also very surprise about time performance because of duck duck typing
+[12:44:10] sdegutis: Can anyone recommend any Clojure library that's simple yet powerful?
+[12:45:20] kwladyka: sdegutis, ?
+[12:45:59] chouser: clojure.zip ?
+[12:50:03] wasamasa: clojure.core
+[12:50:19] sdegutis: None of those show up in https://github.com/search?q=simple+powerful&l=Clojure
+[12:50:41] wasamasa: lol
+[12:50:51] sdegutis: I'm pretty sure you can use this as a metric of language popularity. 68 for Python, 75 for Ruby, 248 for JS
+[12:51:51] amalloy: is clojure.zip simple? the implementation isn't, and the api doesn't seem that simple either
+[12:53:24] pbx: as a clojure noob coming from python, i'm going to give a short "clojure is cool" talk to my python-using coworkers in an hour. any evangelism tips?
+[12:55:02] scriptor: try to use concrete examples
+[12:55:23] justin_smith: pbx: I'd stress the easy vs. simple thing - python is often easy, but the semantics are not simple, whereas clojure has simpler semantics
+[12:55:36] scriptor: tons of people have said "pure functions make code easier to reason about", it's more effective to show why that's the case
+[12:56:07] justin_smith: ahh yeah, a concrete example of where certain common bugs become impossible with immutable datastructures
+[12:56:23] scriptor: maybe brainstorm any bugs from your own company's codebase that might've been avoided or better handled with clojure
+[12:56:49] amalloy: pbx: how short?
+[12:57:14] amalloy: i have slides for a 40-minute "why clojure" presentation on Drive somewhere
+[12:57:37] scriptor: amalloy: I'd be interested in seeing that in general
+[12:58:03] pbx: amalloy, 10 minutes
+[12:58:13] amalloy: oh i guess i called it "a taste of clojure"
+[12:58:16] amalloy: https://drive.google.com/open?id=1mGihUBBIKMQn5Uz-5DvQ1Vu24qSuk3o4yUoPoBZW3tI
+[12:59:20] justin_smith: amalloy: that's a nice demo
+[12:59:24] Jaood: pbx: compare python's horrible lambda to clojure ;)
+[12:59:26] justin_smith: the third page
+[12:59:31] Jaood: ones
+[12:59:49] pbx: good stuff amalloy thanks
+[13:00:32] justin_smith: amalloy: btw, using Thread/yield instead of Thread/sleep led to me having to run a killall -9 java :(
+[13:00:38] amalloy: haha what
+[13:00:52] justin_smith: amalloy: the deal is, I was launching 10000 futures, and cancelling each one
+[13:01:18] justin_smith: this ran out of threads available, which fucked up nrepl - the client died, but the server was still running
+[13:01:37] justin_smith: it got to the point where I couldn't even start new nrepls after a few times (I was trying to figure out what was wrong)
+[13:02:11] justin_smith: because future-cancel can't kill a tight loop that is calling Thread/yield on my jvm apparently (though Thread/sleep 1 was killable by future-cancel)
+[13:02:37] lazybot: http://docs.oracle.com/javase/6/docs/api/java/lang/Thread.html#yield()
+[13:02:37] amalloy: $javadoc Thread yield
+[13:02:43] amalloy: oops
+[13:02:53] amalloy: okay so that doesn't ever get interrupted
+[13:03:09] justin_smith: amalloy: yeah, I don't think it's on the magical list of things that lead to cancellability
+[13:03:19] justin_smith: while waiting on input and sleeping are
+[13:03:39] amalloy: justin_smith: it's not so much a magical list of things, as anything that declares it can throw InterruptedException
+[13:03:49] justin_smith: ahh, interesting
+[13:03:54] justin_smith: very good to know
+[13:04:01] amalloy: because those are typically generated only when someone says "hey man, stop this thread, something is happening"
+[13:04:39] justin_smith: anyway, this is like the first time in over a year I have had to run killall -9 java, so congrats
+[13:04:42] justin_smith: lol
+[13:06:36] sdegutis: pbx: nope sorry.. the only things Clojure has over Python are destructuring and JVM libs
+[13:06:37] amalloy: haha
+[13:06:58] amalloy: justin_smith: (dorun (repeatedly #(future)))
+[13:07:04] amalloy: what could go wrong
+[13:07:15] sdegutis: pbx: and ->> makes map/filter/etc slightly nicer than Python just because Python's dumb and uses global functions unlike Ruby
+[13:08:34] sdegutis: This week's Annual Clojure Challenge!  What's the most interesting and/or bizarre thing you can do with a Set?
+[13:08:56] sdegutis: aaaaaand... Begin!
+[13:41:41] dxlr8r: is it possible to "get" all params to a function (defn) to a list without manually assigning them? like "& args" but with named arguments
+[13:49:08] dxlr8r: (defn [a b c] (print (abc-coll)) :) like that
+[13:51:55] tmtwd:  I'm trying to do string concat in cljs like this : http://pastebin.com/ab0n9KEh what is the best way to do that?
+[13:52:37] chouser: I think you can just leave out the ++'s
+[13:54:24] tmtwd: chouser, thanks :)
+[13:58:16] irctc: anyone here using domkm/silk on a webserver?
+[14:04:18] alex_engelberg: dxlr8r: you could try something like (defn [& [a b c :as all-args]] ...)
+[14:07:31] DomKM: irctc: Most users I've talked to use Silk for frontend routing. I think it works best when used on both the frontend and backend simultaneously. Happy to field questions. :)
+[14:08:19] irctc: DomKM: Thanks for responding - literally just opened up an issue with you on github.
+[14:09:37] irctc: I can explain here too though - I'm having trouble specifying request methods in my routes... I can show you code but that might be easier on github.
+[14:10:28] amalloy: dxlr8r: the only thing that doesn't involve retyping the arglist is what alex_engelberg is suggesting, but then you lose arity overloading, and arity checking: (foo 1) becomes legal now, setting [a b c] to [1 nil nil]
+[14:16:02] DomKM: irctc: Okay. I responded to the issue you opened.
+[14:57:35] {blake}: Does Clojure push a context on to the stack? (I'm asking because Smalltalk does but I haven't thought through if the same is necessary or useful in Clojure.)
+[15:01:35] amalloy: {blake}: the jvm uses the stack for locals, yes
+[15:02:52] {blake}: amalloy: Any non-user designated stuff? System info?
+[15:03:23] amalloy: well like, the return address and so on is there, i imagine
+[15:03:31] amalloy: but maybe not
+[15:03:44] {blake}: amalloy: OK, fair enough.
+[15:03:47] lazybot: ⇒ 290
+[15:03:47] {blake}: (inc amalloy)
+[15:03:48] justin_smith: {blake}: as I understand it the jvm is relatively heap happy
+[15:03:57] amalloy: i was recently reading the jvm spec actually, and read the bit about stack frames
+[15:04:07] justin_smith: it's notorious for being more fragmented for that reason
+[15:04:11] amalloy: but i don't remember what is on there other than your locals
+[15:04:54] justin_smith: amalloy: what's on the stack will still be essentially a pointer to the actual object in the heap, right?
+[15:05:18] amalloy: yes, locals are always primitives or pointers to objects on the heap
+[15:05:24] {blake}: In Smalltalk, it's typically the sender, receiver, arguments, selector, locals and a home context.
+[15:06:09] amalloy: all of those are just locals on the jvm, except the sender doesn't exist and i don't know what a home context is
+[15:06:15] amalloy: oh or a selector
+[15:06:45] justin_smith: is a selector like a method?
+[15:06:51] justin_smith: no, that doesn't make sense
+[15:07:24] justin_smith: oh wait, it basically is - it's the method name essentially
+[15:07:26] amalloy: smalltalk has a much richer stack/environment than any language i know of
+[15:07:31] justin_smith: http://www.objs.com/x3h7/smalltalk.htm
+[15:07:38] {blake}: justin_smith: A selector is...a selector. =) Typically objects respond to the selector by calling a mathicng method. But they don't have to.
+[15:07:51] justin_smith: aha
+[15:08:01] {blake}: Yeah, it's one of the few languages I know where it's conceivable to debug with step-backwards.
+[15:09:13] {blake}: Seems like it could happen in Clojure, though.
+[15:09:37] justin_smith: {blake}: ocaml has a time-travel debugger
+[15:10:02] {blake}: justin_smith: Yeah! I'd heard that. I've only dabbled.
+[15:51:05] dxlr8r: alex_engelberg / amalloy: thx, but arity checking is kinda required
+[15:52:04] dxlr8r: I wrote some macro once to do it, but was to specific, guess I'm not good enough at them :)
+[16:12:13] kwladyka: is it possible to write functions like https://www.refheap.com/10aff5cf186a546b78d37dac6 with iterate or something like that?
+[16:31:52] justin_smith: kwladyka: that first one could be simpler as a reduce
+[16:33:04] justin_smith: (reduce (fn [new-boards board] (increment-board-by-piece board piece new-boards)) (empty boards) boards)
+[16:33:13] kwladyka: justin_smith, thx, i will see
+[16:33:58] justin_smith: second one is also simple to turn into a reduce
+[16:34:26] justin_smith: this general pattern (if you are taking rest on a list on each loop, and updating some value) is what reduce is for
+[16:35:50] awwaiid: justin_smith: I dug into ocaml's back-stepping debugger, and as far as I can tell it is actually a fork-based time travel technique. I ported the concept to ruby via pry-byebug. Really it is a unix trick more than anything though -- they are not running their bytecode interpreter backwards as I initially thought
+[16:36:05] justin_smith: oh!
+[16:36:12] awwaiid: exactly what I said :)
+[16:37:29] xemdetia: yes the simplest way to travel back in time is to have multiple times!
+[16:37:59] awwaiid: justin_smith: " set processcount count
+[16:38:06] awwaiid:     Set the maximum number of checkpoints to count. More checkpoints facilitate going far back in time, but use more memory and create more Unix processes. " from http://caml.inria.fr/pub/docs/manual-ocaml/debugger.html
+[16:38:18] awwaiid: I think it does a combination of forking and replay
+[17:01:10] kwladyka: justin_smith, nice, even better performance and more readable :)
+[17:01:43] kwladyka: and... it is time to sleep, goodnight :)
+[17:08:39] noncom|2: what is the best library for doing L-systems with clojure today?
+[17:24:51] sdegutis: What an exciting competition today! No submissions yet, which means everyone's working hard on something /really cool/!
+[17:25:07] sdegutis: For those just joining us:  What's the most interesting and/or bizarre thing you can do with a Set?
+[17:25:54] sdegutis: First place gets first prize. Second place gets second prize. NOBODY ELSE GETS ANYTHING.
+[17:28:15] sdegutis: amalloy: richer how?
+[17:38:23] xeqi: sdegutis: i imagine it would be hard to surpass Russell's fun with sets
