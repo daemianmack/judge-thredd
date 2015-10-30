@@ -7,7 +7,6 @@ Wouldn't it be nice to read discrete conversations instead?
 *NB: Any realistic level of effort will produce results that are wrong some large percentage of the time! That's OK.*
 
 
-
 ## Easy
 
 Luckily text-mode communications tend to have simple attribution conventions.
@@ -68,13 +67,13 @@ is attributing *her* shortly after.
 There are likely other heuristics we can fall back on to increase accuracy!
 
 
-
 # Existing bits
 
-## Interface
+## Main interface
 
-`lein run example-chat-2015-08-07.txt`
+CLI: `lein run example-chat-2015-08-07.txt`
 
+REPL: `(-main example-chat-2015-08-07.txt)`
 
 
 ## Logfile parsing
