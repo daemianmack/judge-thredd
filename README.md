@@ -83,9 +83,9 @@ logfile into a simple data structure useful as input to a solution
 under development. It should be possible to treat this namespace as a
 blackbox.
 
-`judge-thredd.-main` takes a filename and uses that utility logic as a
-helpful starting point, printing to the console a portion of the
-results for orientation...
+`judge-thredd.-main` takes a filename and passes the corresponding
+file through that logic as a starting point, printing to the console a
+portion of the results for orientation...
 
 ```
 judge-thredd.core> (-main "example-chat-2015-08-07.txt")
