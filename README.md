@@ -4,8 +4,8 @@ It's confusing to read through IRC (Slack, Hipchat, etc.) scrollback and try to 
 
 Wouldn't it be nice to read discrete conversations instead?
 
-*NB: Any realistic level of effort will produce results that are wrong some large percentage of the time! That's OK.*
-
+# The Reality
+Any realistic level of effort will produce results that are wrong some large percentage of the time! That's OK.
 
 ## Easy
 
@@ -59,7 +59,7 @@ into this...
     08:55 Chuck> Daisy: yes
 ```
 
-The distinction here being that Daisy is continuing talking to Chuck
+The distinction here being that Daisy is still talking to Chuck --
 but without attribution. We can reasonably guess she's still speaking
 to Chuck even though her last statement is unattributed because Chuck
 is attributing *her* shortly after.
@@ -87,7 +87,7 @@ blackbox.
 file through that logic as a starting point, printing to the console a
 portion of the results for orientation...
 
-```
+```clojure
 judge-thredd.core> (-main "example-chat-2015-08-07.txt")
 :message-count 7
 :first-10-messages
@@ -118,4 +118,4 @@ edge cases.
 # Testing
 
 There is a broken unit test included as a means of further
-illustrating what one possible approach might produce.
+illustrating what one approach might produce.
