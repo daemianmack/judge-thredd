@@ -119,5 +119,6 @@ find edge cases.
 
 # Testing
 
-There is a broken unit test included as a means of further
-illustrating what one approach might produce.
+There is a failing unit test included as a starting point.
+
+`lein test`
