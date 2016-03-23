@@ -15,7 +15,7 @@ supports "conversational" printing as examined below.
 
 ### An easy goal
 
-Luckily text-mode communications tend to have simple attribution conventions.
+Luckily, text-mode communications tend to have simple attribution conventions.
 
 It should be easy enough to turn this...
 
@@ -40,8 +40,8 @@ into this...
 
 ### A less-easy goal
 
-Another heuristic one could use is to judge thread participation by
-recency of message, turning this...
+Another heuristic: one could judge thread participation by recency of
+message, turning this...
 
 ```
     08:45 Alice> Good morning!
@@ -66,19 +66,19 @@ into this...
     08:55 Chuck> Daisy: yes
 ```
 
-The distinction here being that Daisy is still talking to Chuck,
-but *without attribution*. We can reasonably guess she's still speaking
-to Chuck -- even though her last statement is unattributed -- because Chuck
-is attributing *her* shortly after.
+The distinction being that Daisy is still talking to Chuck, but
+*without attribution*. We can reasonably guess she's still speaking to
+Chuck -- even though her last statement is unattributed -- because
+Chuck is attributing *her* shortly after.
 
 There are likely other heuristics we can fall back on to increase accuracy.
 
 
 # Provided bits
 
-### Main interface
+### CLI interface
 
-CLI: `lein run example-irc-log-2015-08-07.txt`
+`lein run example-irc-log-2015-08-07.txt`
 
 ### Logfile parsing
 
@@ -86,10 +86,10 @@ CLI: `lein run example-irc-log-2015-08-07.txt`
 logfile into a simple data structure useful as input to a solution
 under development. Feel free to treat this namespace as a blackbox.
 
-- `judge-thredd.-main` is, out of the box, purely cosmetic. Currently
-it takes a filename representing a file present under `resources/`,
-parses that file via `chat-logs/irc-log-messages` and prints the
-results to STDOUT, like so...
+- `judge-thredd.-main` is, out of the box, **purely cosmetic**.
+Currently it takes a filename representing a file present under
+`resources/`, parses that file via `chat-logs/irc-log-messages` and
+prints the results to STDOUT, like so...
 
 ```clojure
 judge-thredd.core> (-main "example-irc-log-2015-08-07.txt")
