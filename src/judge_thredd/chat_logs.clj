@@ -19,7 +19,7 @@
    output...
      #object[org.joda.time.DateTime \"2015-08-07T00:00:00.000Z\"]"
   [filename]
-  (let [yyyy-MM-DD (first (re-seq #"\d{4}-\d{2}-\d{2}" filename))]
+  (let [yyyy-MM-DD (re-find #"\d{4}-\d{2}-\d{2}" filename)]
     (tf/parse yyyy-MM-DD->datetime yyyy-MM-DD)))
 
 (defn raw-time->datetime-map
