@@ -59,9 +59,9 @@
 
 (defrecord IrcFreenodeLog []
   ChatReader
-  (->messages [this source]
-              (let [offset-for (partial apply-offset (filename->datetime source))]
-                (with-open [rdr (io/reader (io/resource source))]
+  (->messages [this source-file]
+              (let [offset-for (partial apply-offset (filename->datetime source-file))]
+                (with-open [rdr (io/reader (io/resource source-file))]
                   (doall
                    (for [line (line-seq rdr)
                          :let [[raw-time speaker text] (split line #" " 3)]]
@@ -69,6 +69,6 @@
                       (drop-colon speaker)
                       text]))))))
 
-(defn messages
+(defn irc-log-messages
   [filename]
   (->messages (IrcFreenodeLog.) filename))
