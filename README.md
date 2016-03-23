@@ -34,7 +34,8 @@ into this...
 
 ## Less easy
 
-Judging thread participation by recency of message, turning this...
+Another heuristic one could use is to judge thread participation by
+recency of message, turning this...
 
 ```
     08:45 Alice> Good morning!
@@ -78,14 +79,15 @@ REPL: `(judge-thredd.core/-main example-chat-2015-08-07.txt)`
 
 ## Logfile parsing
 
-`judge-thredd.chat-logs` contains some utility logic to parse an IRC
+- `judge-thredd.chat-logs` contains some utility logic to parse an IRC
 logfile into a simple data structure useful as input to a solution
-under development. It should be possible to treat this namespace as a
-blackbox.
+under development. Feel free to treat this namespace as a blackbox.
 
-`judge-thredd.-main` takes a filename and passes the corresponding
-file through that logic as a starting point, printing to the console a
-portion of the results for orientation...
+- `judge-thredd.-main` is, out of the box, purely cosmetic. Currently
+it takes a filename representing a file present under `resources/` and
+exercises the `chat-logs` logic against it as a starting point,
+printing to the console a portion of the results for orientation, like
+so...
 
 ```clojure
 judge-thredd.core> (-main "example-chat-2015-08-07.txt")
@@ -104,7 +106,7 @@ judge-thredd.core>
 
 
 ## Example IRC logs
-The `resources` directory contains some sample IRC logs.
+The `resources/` directory contains some sample IRC logs.
 
 `example-chat-2015-08-07.txt` is a logfile version of the 'Easy' chat
 above. This should be useful for developing an algorithm against.
