@@ -1,5 +1,5 @@
-(ns judge-thredd.chat-logs-test
-  (:require [judge-thredd.chat-logs :refer :all]
+(ns judge-thredd.log-readers-test
+  (:require [judge-thredd.log-readers :refer :all]
             [clojure.test :refer :all]))
 
 
@@ -12,5 +12,5 @@
    [#inst "2015-08-07T08:55:00.000-00:00" "Daisy" "Are they in the kitchen?"]
    [#inst "2015-08-07T08:56:00.000-00:00" "Chuck" "Daisy: yes"]])
 
-(deftest irc-log-messages-test
-  (is (= message-triples (irc-log-messages "example-irc-log-2015-08-07.txt"))))
+(deftest irc-messages-test
+  (is (= message-triples (irc-messages "example-irc-log-2015-08-07.txt"))))

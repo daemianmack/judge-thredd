@@ -1,7 +1,7 @@
 (ns judge-thredd.core
   (:require [clojure.pprint :as pp]
             [clojure.string :as s]
-            [judge-thredd.chat-logs :refer [irc-log-messages]]))
+            [judge-thredd.log-readers :as log-readers]))
 
 (defn wide-print
   "Customize pprint to print (short) messages in easily-scanned manner."
@@ -22,4 +22,4 @@
 
    Current status: merely prints IRC messages for your inspection."
   [filename]
-  (cosmetic-display (irc-log-messages filename)))
+  (cosmetic-display (log-readers/irc-messages filename)))

@@ -1,4 +1,4 @@
-(ns judge-thredd.chat-logs
+(ns judge-thredd.log-readers
   (:require [clojure.java.io :as io]
             [clj-time.core :as tc]
             [clj-time.coerce :refer [to-date]]
@@ -61,6 +61,6 @@
                       (drop-colon speaker)
                       text]))))))
 
-(defn irc-log-messages
-  [filename]
-  (->messages (IrcFreenodeLog.) filename))
+(defn irc-messages
+  [irc-log-resource]
+  (->messages (IrcFreenodeLog.) irc-log-resource))
