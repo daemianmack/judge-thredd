@@ -1,7 +1,7 @@
 [08:45:00] Alice: Good morning!
 [08:47:00] Brian: Alice: Good morning!
 [08:52:00] Chuck: Anybody up for breakfast burritos?
-[08:53:00] Daisy: Chuck: I love breakfast burritos
+[08:53:00] Daisy: Chuck: I love those
 [08:54:00] Eddie: Alice: morning!
 [08:55:00] Daisy: Are they in the kitchen?
 [08:56:00] Chuck: Daisy: yes

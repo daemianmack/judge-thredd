@@ -1,5 +1,4 @@
 # The Idea
-
 It's confusing to read through IRC (Slack, Hipchat, etc.) scrollback and try to mentally piece together conversations.
 
 Wouldn't it be nice to read discrete conversations instead?
@@ -23,7 +22,7 @@ It should be easy enough to turn this...
     08:45 Alice> Good morning!
     08:47 Brian> Alice: Good morning!
     08:52 Chuck> Anybody up for breakfast burritos?
-    08:53 Daisy> Chuck: I love breakfast burritos
+    08:53 Daisy> Chuck: I love those
     08:54 Eddie> Alice: morning!
 ```
 
@@ -35,7 +34,7 @@ into this...
     08:54 Eddie> Alice: morning!
 
     08:52 Chuck> Anybody up for breakfast burritos?
-    08:53 Daisy> Chuck: I love breakfast burritos
+    08:53 Daisy> Chuck: I love those
 ```
 
 ### A less-easy goal
@@ -47,7 +46,7 @@ message, turning this...
     08:45 Alice> Good morning!
     08:47 Brian> Alice: Good morning!
     08:52 Chuck> Anybody up for breakfast burritos?
-    08:53 Daisy> Chuck: I love breakfast burritos
+    08:53 Daisy> Chuck: I love those
     08:54 Eddie> Alice: morning!
     08:55 Daisy> Are they in the kitchen?
     08:56 Chuck> Daisy: yes
@@ -61,7 +60,7 @@ into this...
     08:54 Eddie> Alice: morning!
 
     08:52 Chuck> Anybody up for breakfast burritos?
-    08:53 Daisy> Chuck: I love breakfast burritos
+    08:53 Daisy> Chuck: I love those
     08:55 Daisy> Are they in the kitchen? ;; An unattributed line in the middle of a conversation.
     08:55 Chuck> Daisy: yes
 ```
@@ -98,7 +97,7 @@ judge-thredd.core> (-main "example-irc-log-2015-08-07.txt")
 ([<2015-08-07T08:45:00.000Z> "Alice" "Good morning!"]
 [<2015-08-07T08:47:00.000Z> "Brian" "Alice: Good morning!"]
 [<2015-08-07T08:52:00.000Z> "Chuck" "Anybody up for breakfast burritos?"]
-[<2015-08-07T08:53:00.000Z> "Daisy" "Chuck: I love breakfast burritos"]
+[<2015-08-07T08:53:00.000Z> "Daisy" "Chuck: I love those"]
 [<2015-08-07T08:54:00.000Z> "Eddie" "Alice: morning!"]
 [<2015-08-07T08:55:00.000Z> "Daisy" "Are they in the kitchen?"]
 [<2015-08-07T08:56:00.000Z> "Chuck" "Daisy: yes"])
