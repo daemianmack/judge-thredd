@@ -26,13 +26,15 @@ It should be easy enough to turn this...
     08:54 Eddie> Alice: morning!
 ```
 
-into this...
+into something like this...
 
 ```
+    # thread 1 -- started by Alice at 08:45
     08:45 Alice> Good morning!
     08:47 Brian> Alice: Good morning!
     08:54 Eddie> Alice: morning!
 
+    # thread 2 -- started by Chuck at 08:52
     08:52 Chuck> Anybody up for breakfast burritos?
     08:53 Daisy> Chuck: I love those
 ```
@@ -55,10 +57,12 @@ message, turning this...
 into this...
 
 ```
+    # thread 1 -- started by Alice at 08:45
     08:45 Alice> Good morning!
     08:47 Brian> Alice: Good morning!
     08:54 Eddie> Alice: morning!
 
+    # thread 2 -- started by Chuck at 08:52
     08:52 Chuck> Anybody up for breakfast burritos?
     08:53 Daisy> Chuck: I love those
     08:55 Daisy> Are they in the kitchen? ;; An unattributed line in the middle of a conversation.
@@ -66,9 +70,9 @@ into this...
 ```
 
 The distinction being that Daisy is still talking to Chuck, but
-*without attribution*. We can reasonably guess she's still speaking to
-Chuck -- even though her last statement is unattributed -- because
-Chuck is attributing *her* shortly after.
+*without addressing her*. We can reasonably guess she's still speaking to
+Chuck -- even though her last statement is unaddressed -- because
+Chuck is addressing *her* shortly after.
 
 There are likely other heuristics we can fall back on to increase accuracy.
 
