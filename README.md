@@ -79,10 +79,6 @@ There are likely other heuristics we can fall back on to increase accuracy.
 
 # Provided bits
 
-### CLI interface
-
-`lein run example-irc-log-2015-08-07.txt`
-
 ### Logfile parsing
 
 - `judge-thredd.chat-logs` contains some utility logic to parse an IRC
@@ -117,9 +113,21 @@ days' worth of irc.freenode.net/#clojure. This might be useful for
 throwing a real-life set of conversations at a solution in order to
 find edge cases.
 
+# REPL
+
+## deps.edn
+`clj` or, e.g `clj -M:cider` to use your ~/.clojure/deps.edn's `cider` alias.
+
+## lein
+
+`lein repl`
 
 # Testing
 
 There is a failing unit test included as a starting point.
 
+## deps.edn
+`clj -X:test`
+
+## lein
 `lein test`
