@@ -15,7 +15,7 @@
 
 (defn filename->datetime
   "Given input...
-     example-irc-log-2015-08-07.txt
+     \"some-irc-log-file-2015-08-07.txt\"
    output...
      #object[org.joda.time.DateTime \"2015-08-07T00:00:00.000Z\"]"
   [filename]

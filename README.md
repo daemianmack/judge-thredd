@@ -95,23 +95,21 @@ Currently it takes a filename representing a file present under
 prints the results to STDOUT, like so...
 
 ```clojure
-judge-thredd.core> (-main "example-irc-log-2015-08-07.txt")
+judge-thredd.core> (-main "easy-goal-example-irc-log-2015-08-07.txt")
 :message-count 7
 :first-10-messages
 ([<2015-08-07T08:45:00.000Z> "Alice" "Good morning!"]
 [<2015-08-07T08:47:00.000Z> "Brian" "Alice: Good morning!"]
 [<2015-08-07T08:52:00.000Z> "Chuck" "Anybody up for breakfast burritos?"]
 [<2015-08-07T08:53:00.000Z> "Daisy" "Chuck: I love those"]
-[<2015-08-07T08:54:00.000Z> "Eddie" "Alice: morning!"]
-[<2015-08-07T08:55:00.000Z> "Daisy" "Are they in the kitchen?"]
-[<2015-08-07T08:56:00.000Z> "Chuck" "Daisy: yes"])
+[<2015-08-07T08:54:00.000Z> "Eddie" "Alice: morning!"])
 ```
 
 
 ### IRC logs
 The `resources/` directory contains some IRC logs.
 
-`example-irc-log-2015-08-07.txt` is a logfile version of the 'Easy'
+`easy-goal-example-irc-log-2015-08-07.txt` is a logfile version of the 'Easy'
 chat above. This should be useful for developing an algorithm against.
 
 `clojure-irc-log-2015-08-07.txt` is an unadulterated sample of one

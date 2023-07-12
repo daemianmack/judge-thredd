@@ -13,4 +13,4 @@
    [#inst "2015-08-07T08:56:00.000-00:00" "Chuck" "Daisy: yes"]])
 
 (deftest irc-messages-test
-  (is (= message-triples (log-readers/irc-messages "example-irc-log-2015-08-07.txt"))))
+  (is (= message-triples (log-readers/irc-messages "easy-goal-example-irc-log-2015-08-07.txt"))))
