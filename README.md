@@ -14,7 +14,7 @@ supports "conversational" printing as examined below.
 
 ### An easy goal
 
-Luckily, text-mode communications tend to have simple attribution conventions.
+Luckily, text-mode communications tend to have simple addressing conventions.
 
 It should be easy enough to turn this...
 
@@ -65,7 +65,7 @@ into this...
     # thread 2 -- started by Chuck at 08:52
     08:52 Chuck> Anybody up for breakfast burritos?
     08:53 Daisy> Chuck: I love those
-    08:55 Daisy> Are they in the kitchen? ;; An unattributed line in the middle of a conversation.
+    08:55 Daisy> Are they in the kitchen? ;; An unaddressed line in the middle of a conversation.
     08:55 Chuck> Daisy: yes
 ```
 
